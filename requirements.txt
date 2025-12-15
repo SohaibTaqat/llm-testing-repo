@@ -1,0 +1,20 @@
+# LLM CLI Tools Dependencies
+
+# Core ML frameworks
+torch>=2.0.0
+transformers>=4.36.0
+
+# Multi-GPU support
+accelerate>=0.25.0
+
+# Quantization (4-bit and 8-bit)
+bitsandbytes>=0.41.0
+
+# Model downloads with progress
+huggingface_hub>=0.20.0
+
+# Fast model loading
+safetensors>=0.4.0
+
+# Progress bars
+tqdm>=4.65.0
