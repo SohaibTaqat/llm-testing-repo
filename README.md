@@ -113,6 +113,10 @@ python benchmark.py mistralai/Mistral-7B-Instruct-v0.3 --output results.json
 - Total inference time
 - VRAM usage per GPU (current and peak)
 
+**Results are auto-saved** to the `results/` folder:
+- Filename format: `{org}_{model}_{quantization}_{timestamp}.txt`
+- Example: `results/mistralai_Mistral-7B-Instruct-v0.3_fp16_20241215_143022.txt`
+
 ## Configuration
 
 ### Model Storage
@@ -239,5 +243,6 @@ llm-testing-repo/
 ├── chat.py            # Interactive chat CLI
 ├── benchmark.py       # GPU benchmarking CLI
 ├── requirements.txt   # Python dependencies
-└── README.md          # This file
+├── README.md          # This file
+└── results/           # Auto-saved benchmark results (created on first run)
 ```

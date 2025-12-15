@@ -10,10 +10,12 @@ Usage:
 
 import argparse
 import json
+import os
 import signal
 import sys
 import time
 from datetime import datetime
+from pathlib import Path
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -301,6 +303,93 @@ def save_results_json(results: dict, output_path: str):
     print(f"\nResults saved to: {output_path}")
 
 
+def format_results_text(results: dict) -> str:
+    """Format results as text for saving to file."""
+    lines = []
+    lines.append("=" * 70)
+    lines.append("BENCHMARK RESULTS")
+    lines.append("=" * 70)
+    lines.append("")
+    lines.append(f"Model: {results['model']}")
+    lines.append(f"Quantization: {results['quantization']}")
+    lines.append(f"Timestamp: {results['timestamp']}")
+
+    # GPU info
+    lines.append("")
+    lines.append("GPUs:")
+    for gpu in results["gpu_info"]:
+        lines.append(f"  GPU {gpu['index']}: {gpu['name']} ({gpu['total_memory_gb']:.1f} GB)")
+
+    # Performance table
+    lines.append("")
+    lines.append("-" * 70)
+    lines.append(f"{'Prompt':<10} {'Output Tok':<12} {'Total Time':<12} {'TTFT':<10} {'Tok/s':<10}")
+    lines.append("-" * 70)
+
+    for prompt in results["prompts"]:
+        lines.append(f"{prompt['prompt_name']:<10} "
+                     f"{prompt['avg_output_tokens']:<12.0f} "
+                     f"{prompt['avg_total_time_s']:<12.2f}s "
+                     f"{prompt['avg_ttft_s']:<10.3f}s "
+                     f"{prompt['avg_tokens_per_second']:<10.2f}")
+
+    lines.append("-" * 70)
+
+    # Calculate overall average
+    all_tps = [p["avg_tokens_per_second"] for p in results["prompts"]]
+    avg_tps = sum(all_tps) / len(all_tps)
+    lines.append(f"{'AVERAGE':<10} {'':<12} {'':<12} {'':<10} {avg_tps:<10.2f}")
+
+    # VRAM usage
+    lines.append("")
+    lines.append("VRAM Usage (Current / Peak):")
+    for i, (current, peak) in enumerate(zip(results["vram_usage"], results["peak_vram"])):
+        lines.append(f"  GPU {i}: {current['allocated_gb']:.2f} GB / {peak['peak_gb']:.2f} GB "
+                     f"(of {current['total_gb']:.1f} GB)")
+
+    lines.append("=" * 70)
+
+    return "\n".join(lines)
+
+
+def save_results_text(results: dict, results_dir: Path) -> str:
+    """
+    Auto-save results to text file in results directory.
+
+    Returns:
+        Path to saved file
+    """
+    # Create results directory if it doesn't exist
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate filename from model name
+    model_name = results["model"]
+    # Replace / with _ for filename
+    safe_model_name = model_name.replace("/", "_")
+
+    # Get quantization suffix
+    quant = results["quantization"]
+    if "4-bit" in quant:
+        quant_suffix = "4bit"
+    elif "8-bit" in quant:
+        quant_suffix = "8bit"
+    else:
+        quant_suffix = "fp16"
+
+    # Generate timestamp for filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    filename = f"{safe_model_name}_{quant_suffix}_{timestamp}.txt"
+    filepath = results_dir / filename
+
+    # Write results
+    text_content = format_results_text(results)
+    with open(filepath, "w") as f:
+        f.write(text_content)
+
+    return str(filepath)
+
+
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully."""
     print("\n\nBenchmark interrupted. Exiting...")
@@ -397,6 +486,12 @@ Environment variables:
 
     # Print results
     print_results_table(results)
+
+    # Auto-save results to results/ folder
+    script_dir = Path(__file__).parent
+    results_dir = script_dir / "results"
+    saved_path = save_results_text(results, results_dir)
+    print(f"\nResults saved to: {saved_path}")
 
     # Save to JSON if requested
     if args.output:
