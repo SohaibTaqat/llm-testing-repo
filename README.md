@@ -9,6 +9,7 @@ A Python CLI toolkit for downloading, running, and benchmarking LLM models from 
 - **GPU benchmarking** with detailed performance metrics
 - **Multi-GPU support** via accelerate's automatic device mapping
 - **Quantization** support (4-bit and 8-bit) via bitsandbytes
+- **Pre-quantized models** support (GPTQ/AWQ) - auto-detected
 - **Safetensors** preference for faster model loading
 
 ## Prerequisites
@@ -24,6 +25,10 @@ A Python CLI toolkit for downloading, running, and benchmarking LLM models from 
 # Clone the repository
 git clone <your-repo-url>
 cd llm-testing-repo
+
+# create a venv and use existing downloaded dependencies
+python -m venv venv --system-site-packages
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -144,6 +149,28 @@ python chat.py mistralai/Mistral-7B-Instruct-v0.3 --model-dir /my/models
 | `meta-llama/Llama-2-13b-chat-hf` | 13B | Better quality, needs more VRAM |
 | `google/gemma-7b-it` | 7B | Good instruction following |
 | `Qwen/Qwen2-7B-Instruct` | 7B | Multilingual |
+
+### Pre-quantized Models (GPTQ/AWQ)
+
+Pre-quantized models are already compressed and load faster with lower VRAM usage. No `--4bit` or `--8bit` flags needed - transformers auto-detects the format.
+
+```bash
+# Download and use AWQ model
+python download.py TheBloke/Mistral-7B-Instruct-v0.2-AWQ
+python chat.py TheBloke/Mistral-7B-Instruct-v0.2-AWQ
+
+# Download and use GPTQ model
+python download.py TheBloke/Mistral-7B-Instruct-v0.2-GPTQ
+python chat.py TheBloke/Mistral-7B-Instruct-v0.2-GPTQ
+```
+
+Popular pre-quantized models from TheBloke:
+| Model | Format | Notes |
+|-------|--------|-------|
+| `TheBloke/Mistral-7B-Instruct-v0.2-AWQ` | AWQ | Fast inference |
+| `TheBloke/Mistral-7B-Instruct-v0.2-GPTQ` | GPTQ | Good quality |
+| `TheBloke/Llama-2-13B-chat-AWQ` | AWQ | Larger model, pre-quantized |
+| `TheBloke/CodeLlama-34B-Instruct-AWQ` | AWQ | Code generation |
 
 ## Example Workflow
 
