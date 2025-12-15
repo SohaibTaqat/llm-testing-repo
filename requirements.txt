@@ -19,6 +19,7 @@ safetensors>=0.4.0
 # Progress bars
 tqdm>=4.65.0
 
-# Pre-quantized model support (GPTQ/AWQ)
-auto-gptq>=0.7.0
-autoawq>=0.2.0
+# Optional: Pre-quantized model support (GPTQ/AWQ)
+# Install manually if needed (may require --no-build-isolation):
+#   pip install auto-gptq autoawq --no-build-isolation
+# Note: transformers has built-in GPTQ support, these add optimizations

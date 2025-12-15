@@ -158,6 +158,11 @@ python chat.py mistralai/Mistral-7B-Instruct-v0.3 --model-dir /my/models
 
 Pre-quantized models are already compressed and load faster with lower VRAM usage. No `--4bit` or `--8bit` flags needed - transformers auto-detects the format.
 
+**Optional dependencies** for better GPTQ/AWQ support:
+```bash
+pip install auto-gptq autoawq --no-build-isolation
+```
+
 ```bash
 # Download and use AWQ model
 python download.py TheBloke/Mistral-7B-Instruct-v0.2-AWQ
